@@ -35,7 +35,7 @@ while ($dayAgo <= 731) {
                                             $content,
                                             $pageArr
                                         ) ? $pageArr['1'] : 1) : $pageCount;
-        die($pageCount);
+        //die($pageCount);
         ++$pageCurrent;
     } while ($pageCurrent <= $pageCount);
 
