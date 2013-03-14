@@ -1,4 +1,8 @@
 <?php
+
+phpinfo();die();
+echo `ls`;
+die();
 $timeNow = strtotime('now');
 
 $dayAgo = 0;
