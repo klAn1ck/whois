@@ -4,9 +4,11 @@ $timeNow = strtotime('now');
 $dayAgo = 0;
 while ($dayAgo <= 731) {
     $pageCurrent = 1;
+    $dateLinkText = date('Y-m-d', strtotime('-' . $dayAgo . ' day'));
+    $domainsData = array();
 
     do {
-        $dateLinkText = date('Y-m-d', strtotime('-' . $dayAgo . ' day'));
+        // prepare POST for file_get_contents function
         $postData = http_build_query(
             array(
                 'page' => $pageCurrent,
@@ -25,22 +27,28 @@ while ($dayAgo <= 731) {
             )
         );
 
-
+        // get the content of the current page
         $mainLink = 'http://www.odditysoftware.com/__live/_post/domains.php';
         $context = stream_context_create($opts);
         $content = file_get_contents($mainLink, false, $context);
-        if($pageCurrent === 2) die($content);
 
-        $pageCount = isset($pageCount) ? (preg_match('#<span\s+class="pages">[^<]<b>\d+</b>[^<]<b>(\d+)</b></span>#is',
+        // parse a links with PR
+        if(preg_match_all('#<tr>\s+<td\s+class=\'ui-widget-content\'><a\s+target="_blank"\s+href=\'/domain-tools/register/([^\']+)\'>.+src="/_images/pr/PageRank(\d+)\.jpg".+</tr>#isU',$content,$domainsDataTemp,PREG_SET_ORDER)){
+            foreach($domainsDataTemp as $key=>$domainDataTemp){
+                $domainsData[$pageCurrent][$key]['href'] = $domainDataTemp[1];
+                $domainsData[$pageCurrent][$key]['pr'] = $domainDataTemp[2];
+            }
+        }
+
+        # get the count of pages
+        $pageCount = !isset($pageCount) ? (preg_match('#<span\s+class="pages">[^<]+<b>\d+</b>[^<]+<b>(\d+)</b></span>#is',
                                             $content,
                                             $pageArr
                                         ) ? $pageArr['1'] : 1) : $pageCount;
-        //die($pageCount);
         ++$pageCurrent;
     } while ($pageCurrent <= $pageCount);
 
 
-
-    die($content);
+    die();
     $dayAgo++;
 }
