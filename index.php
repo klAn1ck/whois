@@ -25,7 +25,6 @@ while ($dayAgo <= 731) {
             )
         );
 
-
         $mainLink = 'http://www.odditysoftware.com/__live/_post/domains.php';
         $context = stream_context_create($opts);
         $content = file_get_contents($mainLink, false, $context);
