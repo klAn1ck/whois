@@ -7,4 +7,5 @@ function getDataByLink($link){
     $indexGov = preg_match('#id="filter-gov-counter">(\d+)</span>#isU',$content,$tempGov) ? $tempGov[1] : 0 ;
     $indexEdu = preg_match('#id="filter-edu-counter">(\d+)</span>#isU',$content,$tempEdu) ? $tempEdu[1] : 0 ;
 
+    return array($indexAll,$indexGov,$indexEdu);
 }
