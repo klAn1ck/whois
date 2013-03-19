@@ -1,7 +1,6 @@
 <?php
 
-phpinfo();die();
-echo `ls`;
+echo strtotime('15-mar-2014');
 die();
 $timeNow = strtotime('now');
 

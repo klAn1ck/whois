@@ -1,14 +1,15 @@
 <?php
 
-phpinfo();die();
-echo `ls`;
-die();
-$timeNow = strtotime('now');
+//phpinfo();die();
+//echo `whois xado.com`;
+//die();
+//$timeNow = strtotime('now');
 
 $dayAgo = 0;
 while ($dayAgo <= 731) {
     $pageCurrent = 1;
-    $dateLinkText = date('Y-m-d', strtotime('-' . $dayAgo . ' day'));
+    $timeDayAgo = strtotime('-' . $dayAgo . ' day');
+    $dateLinkText = date('Y-m-d', $timeDayAgo );
     $domainsData = array();
 
     do {
@@ -41,6 +42,13 @@ while ($dayAgo <= 731) {
             foreach($domainsDataTemp as $key=>$domainDataTemp){
                 $domainsData[$pageCurrent][$key]['href'] = $domainDataTemp[1];
                 $domainsData[$pageCurrent][$key]['pr'] = $domainDataTemp[2];
+
+                $whoisData = shell_exec('whois '.$domainDataTemp[1]);
+                $whoIsExpiredStatus = preg_match('#Expiration\s+Date\:\s+(\d{2}-\S{3}-\d{4})#is',$whoisData,$whoistemp) ? strtotime($whoistemp[1]) : 0;
+                $expiredStatusFlag =  $timeDayAgo >= $whoIsExpiredStatus ? 1 : 0 ;
+
+                echo $whoIsExpiredStatus;
+                die();
             }
         }
 
