@@ -1,11 +1,25 @@
 <?php
-$link = '187radio.net';
 
-function getDataByLink($link){
-    $content = file_get_contents('http://ahrefs.com/site-explorer/backlinks/subdomains/'.$link.'/not_sitewide-href-dofollow-all-all');
-    $indexAll = preg_match('#id="filter-all-gov-edu-counter">(\d+)</span>#isU',$content,$tempAll) ? $tempAll[1] : 0 ;
-    $indexGov = preg_match('#id="filter-gov-counter">(\d+)</span>#isU',$content,$tempGov) ? $tempGov[1] : 0 ;
-    $indexEdu = preg_match('#id="filter-edu-counter">(\d+)</span>#isU',$content,$tempEdu) ? $tempEdu[1] : 0 ;
+mysql_connect('localhost', 'root', 'ghjcnjnfr21');
 
-    return array($indexAll,$indexGov,$indexEdu);
+mysql_select_db('parser_kl');
+
+$p = mysql_query('SELECT `domain_name` FROM `domains`');
+//echo mysql_num_rows($q);
+while($q = mysql_fetch_array($p)){
+    $name = $q[0];
+    $whoisData = shell_exec('whois '.$name);
+    $whoisExpiredStatus = '-1';
+    //die($whoisData);
+    if(preg_match("#[^0-9]*Expir[^0-9]+\s+(.*)\n#isU",$whoisData,$whoistemp)){
+//        print_r($whoistemp);
+//        die('-');
+        $whoisExpiredStatus = strtotime(trim($whoistemp[1]));
+    }elseif(preg_match('#paid-till\:\s+\d{4}\.\d{2}\.\d{2})#is',$whoisData,$whoistemp)){
+        $whoisExpiredStatus = strtotime($whoistemp[1]);
+    }
+    //die();
+    echo $whoisExpiredStatus."<br />";
+    flush();
+    ob_flush();
 }

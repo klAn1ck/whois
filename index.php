@@ -1,4 +1,7 @@
 <?php
+echo shell_exec('whois xado.name');
+die();
+set_time_limit(0);
 $db = mysqli_connect('localhost', 'root', 'ghjcnjnfr21', 'parser_kl');
 
 function getDataByLink($link){
@@ -20,7 +23,7 @@ function getDataByLink($link){
 //$timeNow = strtotime('now');
 
 $dayAgo = 0;
-while ($dayAgo <= 731) {
+while ($dayAgo <= 1){//731) {
     $pageCurrent = 1;
     $timeDayAgo = strtotime('-' . $dayAgo . ' day');
     $dateLinkText = date('Y-m-d', $timeDayAgo);
@@ -57,20 +60,43 @@ while ($dayAgo <= 731) {
             $domainsDataTemp,
             PREG_SET_ORDER)) {
             foreach ($domainsDataTemp as $key => $domainDataTemp) {
-                $domainsData[$pageCurrent][$key]['href'] = $domainDataTemp[1];
-                $domainsData[$pageCurrent][$key]['pr'] = $domainDataTemp[2];
-                $domainsData[$pageCurrent][$key]['pr'] = getDataByLink($domainsData[$pageCurrent][$key]['href']);
+                $domainsData = array();
+                $domainsData['href'] = $domainDataTemp[1];
+                $domainsData['pr'] = $domainDataTemp[2];
+                $domainsData['backlinks'] = getDataByLink($domainsData['href']);
+
+                echo $domainsData['href'];
+                flush();
+                ob_flush();
+                flush();
 
                 $whoisData = shell_exec('whois ' . $domainDataTemp[1]);
-                $whoisExpiredStatus = preg_match(
-                    '#Expiration\s+Date\:\s+(\d{2}-\S{3}-\d{4})#is',
-                    $whoisData,
-                    $whoistemp
-                ) ? strtotime($whoistemp[1]) : 0;
-                $expiredStatusFlag = $timeDayAgo >= $whoisExpiredStatus ? 1 : 0;
+                $whoisExpiredStatus = 0;
+                if(preg_match('#^[^\d]*Expir[^\d]+\:\s+(.*)$#is',$whoisData,$whoistemp)){
+                    $whoisExpiredStatus = strtotime(trim($whoistemp[1]));
+                }elseif(preg_match('#paid-till\:\s+\d{4}\.\d{2}\.\d{2})#is',$whoisData,$whoistemp)){
+                    $whoisExpiredStatus = strtotime($whoistemp[1]);
+                }
 
-                echo $whoisExpiredStatus;
-                die();
+                $expiredStatusFlag = $timeDayAgo >= $whoisExpiredStatus ? 1 : 0;
+                if($expiredStatusFlag){
+                    echo ' yes';
+                    flush();
+                    ob_flush();
+                    flush();
+                    $t = mysqli_query($db,'INSERT INTO `domains` SET
+                                            `domain_name`="'.$domainsData['href'].'",
+                                            `PR`="'.$domainsData['pr'].'",
+                                            `date`="'.date('Y-m-d',$timeDayAgo).'",
+                                            `backlinks_all`="'.$domainsData['backlinks'][0].'",
+                                            `backlinks_gov`="'.$domainsData['backlinks'][1].'",
+                                            `backlinks_edu`="'.$domainsData['backlinks'][2].'"');
+                }
+                echo "<br />";
+                flush();
+                ob_flush();
+                flush();
+                //die();
 
             }
         }
@@ -85,6 +111,6 @@ while ($dayAgo <= 731) {
     } while ($pageCurrent <= $pageCount);
 
 
-    die();
+    //die();
     $dayAgo++;
 }
